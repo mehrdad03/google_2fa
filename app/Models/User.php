@@ -43,10 +43,21 @@ class User extends Authenticatable
     protected $casts = [
         'email_verified_at' => 'datetime',
     ];
+
+    /**
+     * @param $value
+     * @return void
+     */
+
     public function setGoogle2faSecretAttribute($value)
     {
         $this->attributes['google2fa_secret'] = encrypt($value);
     }
+
+    /**
+     * @param $value
+     * @return mixed
+     */
 
     public function getGoogle2faSecretAttribute($value)
     {
