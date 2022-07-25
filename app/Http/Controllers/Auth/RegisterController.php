@@ -60,20 +60,6 @@ class RegisterController extends Controller
         ]);
     }
 
-    /**
-     * Create a new user instance after a valid registration.
-     *
-     * @param array $data
-     * @return \App\Models\User
-     */
-    protected function create(array $data)
-    {
-        return User::create([
-            'name' => $data['name'],
-            'email' => $data['email'],
-            'password' => Hash::make($data['password']),
-        ]);
-    }
 
     /**
      * @throws \Illuminate\Validation\ValidationException
@@ -86,11 +72,12 @@ class RegisterController extends Controller
         // Initialise the 2FA class
         $google2fa = app('pragmarx.google2fa');
 
+
         // Save the registration data in an array
         $registration_data = $request->all();
-
         // Add the secret key to the registration data
         $registration_data["google2fa_secret"] = $google2fa->generateSecretKey();
+
 
         // Save the registration data to the user session for just the next request
         $request->session()->flash('registration_data', $registration_data);
@@ -106,4 +93,24 @@ class RegisterController extends Controller
         // Pass the QR barcode image to our view
         return view('google2fa.register', ['QR_Image' => $QR_Image, 'secret' => $registration_data['google2fa_secret']]);
     }
+
+    public function completeRegistration(Request $request)
+    {
+        // add the session data back to the request input
+        $request->merge(session('registration_data'));
+
+        // Call the default laravel authentication
+        return $this->registration($request);
+    }
+
+    protected function create(array $data)
+    {
+        return User::create([
+            'name' => $data['name'],
+            'email' => $data['email'],
+            'password' => Hash::make($data['password']),
+            'google2fa_secret' => $data['google2fa_secret'],
+        ]);
+    }
+
 }
